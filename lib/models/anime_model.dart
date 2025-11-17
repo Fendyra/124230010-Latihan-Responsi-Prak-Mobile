@@ -12,6 +12,16 @@ class Anime {
   final String? season;
   final int? year;
   final List<String> genres;
+  final int? rank;
+  final int? popularity;
+  final int? members;
+  final int? favorites;
+  final String type;
+  final String source;
+  final List<String> studios;
+  final List<String> producers;
+  final String? aired;
+  final int? scoredBy;
 
   Anime({
     required this.malId,
@@ -27,6 +37,16 @@ class Anime {
     this.season,
     this.year,
     required this.genres,
+    this.rank,
+    this.popularity,
+    this.members,
+    this.favorites,
+    required this.type,
+    required this.source,
+    required this.studios,
+    required this.producers,
+    this.aired,
+    this.scoredBy,
   });
 
   factory Anime.fromJson(Map<String, dynamic> json) {
@@ -46,6 +66,20 @@ class Anime {
       genres: (json['genres'] as List<dynamic>)
           .map((genre) => genre['name'] as String)
           .toList(),
+      rank: json['rank'],
+      popularity: json['popularity'],
+      members: json['members'],
+      favorites: json['favorites'],
+      type: json['type'] ?? 'Unknown',
+      source: json['source'] ?? 'Unknown',
+      studios: (json['studios'] as List<dynamic>?)
+          ?.map((studio) => studio['name'] as String)
+          .toList() ?? [],
+      producers: (json['producers'] as List<dynamic>?)
+          ?.map((producer) => producer['name'] as String)
+          .toList() ?? [],
+      aired: json['aired']?['string'],
+      scoredBy: json['scored_by'],
     );
   }
 }
