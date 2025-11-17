@@ -58,7 +58,7 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   Image.asset(
                     'assets/images/logo-otsu.png',
-                    height: 150,
+                    height: 300,
                   ),
                   const SizedBox(height: 24),
                   Text(
@@ -72,7 +72,7 @@ class _LoginPageState extends State<LoginPage> {
                     textAlign: TextAlign.center,
                     style: textTheme.titleMedium,
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 48),
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),

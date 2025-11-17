@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:latres_prak_mobile/pages/home_page.dart';
 import 'package:latres_prak_mobile/pages/login_page.dart';
+import 'package:latres_prak_mobile/pages/main_page.dart'; 
 import 'package:latres_prak_mobile/theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
       title: 'Otsu',
       theme: buildTheme(),
       debugShowCheckedModeBanner: false,
-      home: isLoggedIn ? const HomePage() : const LoginPage(),
+      home: isLoggedIn ? const MainPage() : const LoginPage(),
     );
   }
 }

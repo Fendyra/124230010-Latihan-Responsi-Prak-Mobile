@@ -73,7 +73,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 children: [
                   Image.asset(
                     'assets/images/logo-otsu.png',
-                    height: 150,
+                    height: 300,
                   ),
                   const SizedBox(height: 24),
                   Text(

@@ -42,7 +42,7 @@ ThemeData buildTheme() {
     
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: OtsuColor.background.withOpacity(0.5),
+      fillColor: OtsuColor.surface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.0),
