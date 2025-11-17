@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:latres_prak_mobile/models/anime_model.dart';
 import 'package:latres_prak_mobile/pages/detail_page.dart';
+import 'package:latres_prak_mobile/pages/login_page.dart';
 import 'package:latres_prak_mobile/services/api_service.dart';
 import 'package:latres_prak_mobile/theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,61 +14,169 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late Future<List<Anime>> _animeListFuture;
-  final PageController _pageController = PageController(viewportFraction: 0.85);
+  final ApiService apiService = ApiService();
+  final TextEditingController _searchController = TextEditingController();
+  List<Anime> _animeList = [];
+  List<Anime> _spotlightAnime = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  late PageController _pageController;
+  String? _selectedType = 'All';
+  final List<String> _animeTypes = ['All', 'TV', 'Movie', 'OVA', 'Special'];
+  bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
-    _animeListFuture = ApiService().fetchTopAnime();
+    _pageController = PageController(viewportFraction: 0.85);
+    _fetchTopAnime();
   }
 
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchTopAnime() async {
+    setState(() {
+      _isLoading = true;
+      _isSearching = false;
+      _errorMessage = null;
+    });
+
+    try {
+      final animeList = await apiService.fetchTopAnime(
+        type: _selectedType == 'All' ? null : _selectedType?.toLowerCase(),
+      );
+      setState(() {
+        _animeList = animeList;
+
+        if (_selectedType == 'All') {
+          _spotlightAnime = animeList.take(5).toList();
+        } else {
+          _spotlightAnime = [];
+        }
+
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.toString();
+      });
+    }
+  }
+
+  Future<void> _searchAnime(String query) async {
+    if (query.isEmpty) {
+      _fetchTopAnime();
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _isSearching = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final animeList = await apiService.searchAnime(query);
+      setState(() {
+        _animeList = animeList;
+        _spotlightAnime = [];
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.toString();
+      });
+    }
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('username');
+
+    if (!context.mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+      (Route<dynamic> route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: FutureBuilder<List<Anime>>(
-          future: _animeListFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text("Error: ${snapshot.error}"));
-            } else if (snapshot.hasData) {
-              final allAnime = snapshot.data!;
-              final spotlightAnime = allAnime.take(5).toList();
-              final topAnime = allAnime;
-
-              return _buildHomeFeed(context, spotlightAnime, topAnime);
-            } else {
-              return const Center(child: Text("No anime found."));
-            }
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHomeFeed(BuildContext context, List<Anime> spotlight, List<Anime> topAnime) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(context),
-          _buildSearchBar(),
-          _buildSectionTitle("Anime Spotlight"),
-          _buildAnimeCarousel(spotlight),
-          _buildSectionTitle("Top Rated Anime"),
-          _buildAnimeGrid(topAnime),
+      appBar: AppBar(
+        title: const Text('Otsu'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () => _logout(context),
+          ),
         ],
+        backgroundColor: Colors.transparent,
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(context),
+            _buildSearchBar(),
+            if (!_isSearching) _buildCategoryFilters(),
+            if (_spotlightAnime.isNotEmpty && !_isSearching) ...[
+              _buildSectionTitle("Anime Spotlight"),
+              _buildAnimeCarousel(_spotlightAnime),
+            ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              child: Text(
+                _isSearching
+                    ? 'Search Results'
+                    : 'Top Anime${_selectedType != 'All' ? ' - $_selectedType' : ''}',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: OtsuColor.primary,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: _isLoading
+                  ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  : _errorMessage != null
+                      ? Center(child: Text('Error: $_errorMessage'))
+                      : _animeList.isEmpty
+                          ? const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(32.0),
+                                child: Text('No anime found.'),
+                              ),
+                            )
+                          : _buildAnimeGrid(_animeList),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildHeader(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -91,28 +201,6 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: "Search anime...",
-          prefixIcon: const Icon(Icons.search, color: OtsuColor.grey),
-          fillColor: OtsuColor.surface,
-          filled: true,
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16.0),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16.0),
-            borderSide: const BorderSide(color: OtsuColor.primary, width: 2.0),
-          ),
-        ),
       ),
     );
   }
@@ -182,9 +270,87 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: "Search anime...",
+          prefixIcon: const Icon(Icons.search, color: OtsuColor.grey),
+          suffixIcon: _isSearching || _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    _searchController.clear();
+                    _searchAnime('');
+                  },
+                )
+              : null,
+          fillColor: OtsuColor.surface,
+          filled: true,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16.0),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16.0),
+            borderSide: const BorderSide(color: OtsuColor.primary, width: 2.0),
+          ),
+        ),
+        onSubmitted: (value) {
+          if (value.isNotEmpty) {
+            _searchAnime(value);
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildCategoryFilters() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4.0),
+      height: 48,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: _animeTypes.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final type = _animeTypes[index];
+          final isSelected = _selectedType == type;
+          return ChoiceChip(
+            label: Text(type),
+            labelStyle: TextStyle(
+              color: isSelected ? Colors.white : OtsuColor.primary,
+              fontWeight: FontWeight.w600,
+            ),
+            selected: isSelected,
+            selectedColor: OtsuColor.primary,
+            backgroundColor: OtsuColor.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: BorderSide(
+                color:
+                    isSelected ? OtsuColor.primary : OtsuColor.grey.withOpacity(0.5),
+              ),
+            ),
+            onSelected: (selected) {
+              if (selected) {
+                setState(() {
+                  _selectedType = type;
+                });
+                _fetchTopAnime();
+              }
+            },
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildAnimeGrid(List<Anime> animeList) {
     return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+      padding: const EdgeInsets.only(bottom: 20.0),
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
       itemCount: animeList.length,
@@ -230,6 +396,8 @@ class _HomePageState extends State<HomePage> {
                       anime.imageUrl,
                       width: double.infinity,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Center(child: Icon(Icons.broken_image)),
                     ),
                   ),
                 ),
@@ -250,7 +418,8 @@ class _HomePageState extends State<HomePage> {
                   padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
                   child: Row(
                     children: [
-                      const Icon(Icons.star_rounded, color: OtsuColor.accent, size: 20),
+                      const Icon(Icons.star_rounded,
+                          color: OtsuColor.accent, size: 20),
                       const SizedBox(width: 4),
                       Text(
                         anime.score.toString(),
