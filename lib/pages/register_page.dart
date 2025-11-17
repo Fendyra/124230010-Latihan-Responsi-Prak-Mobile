@@ -12,6 +12,7 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _nimController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -32,6 +33,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
       await box.put(_usernameController.text, {
         'name': _nameController.text,
+        'nim': _nimController.text,
         'password': _passwordController.text,
       });
 
@@ -68,12 +70,11 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Image.asset(
                     'assets/images/logo-otsu.png',
-                    height: 300,
+                    height: 250,
                   ),
                   const SizedBox(height: 24),
                   Text(
@@ -104,6 +105,21 @@ class _RegisterPageState extends State<RegisterPage> {
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Name cannot be empty';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _nimController,
+                              decoration: const InputDecoration(
+                                labelText: 'NIM',
+                                prefixIcon: Icon(Icons.badge_outlined),
+                              ),
+                              keyboardType: TextInputType.number,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'NIM cannot be empty';
                                 }
                                 return null;
                               },
@@ -154,10 +170,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'Already have an account?',
-                        style: textTheme.bodyMedium,
-                      ),
+                      Text('Already have an account?', style: textTheme.bodyMedium),
                       TextButton(
                         onPressed: () {
                           Navigator.pushReplacement(

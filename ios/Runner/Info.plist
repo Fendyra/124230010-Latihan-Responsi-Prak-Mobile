@@ -45,5 +45,12 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<key>NSCameraUsageDescription</key>
+	<string>Aplikasi ini membutuhkan akses kamera untuk mengambil foto profil Anda.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Aplikasi ini membutuhkan akses galeri untuk memilih foto profil Anda.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Aplikasi ini membutuhkan akses mikrofon jika Anda merekam video untuk profil.</string>
 </dict>
 </plist>

@@ -1,31 +1,10 @@
+// lib/pages/main_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:latres_prak_mobile/pages/home_page.dart';
+import 'package:latres_prak_mobile/pages/favorite_page.dart';
+import 'package:latres_prak_mobile/pages/profile_page.dart';
 import 'package:latres_prak_mobile/theme.dart';
-
-// --- Halaman Placeholder (Akan kita buat di step berikutnya) ---
-class FavoritesPage extends StatelessWidget {
-  const FavoritesPage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('My Favorites')),
-      body: const Center(child: Text('Halaman Favorit (WIP)')),
-    );
-  }
-}
-
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
-      body: const Center(child: Text('Halaman Profil (WIP)')),
-    );
-  }
-}
-// --- Akhir Halaman Placeholder ---
-
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
