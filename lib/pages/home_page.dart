@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:latres_prak_mobile/models/anime_model.dart';
 import 'package:latres_prak_mobile/pages/detail_page.dart';
-import 'package:latres_prak_mobile/pages/login_page.dart';
 import 'package:latres_prak_mobile/services/api_service.dart';
 import 'package:latres_prak_mobile/theme.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,18 +21,6 @@ class _HomePageState extends State<HomePage> {
     _animeListFuture = ApiService().fetchTopAnime();
   }
 
-  Future<void> _logout(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('username');
-
-    if (!context.mounted) return;
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
-      (Route<dynamic> route) => false,
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -103,11 +89,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ],
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded, color: OtsuColor.grey, size: 28),
-            onPressed: () => _logout(context),
-            tooltip: 'Logout',
           ),
         ],
       ),
