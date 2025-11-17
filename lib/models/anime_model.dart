@@ -73,11 +73,13 @@ class Anime {
       type: json['type'] ?? 'Unknown',
       source: json['source'] ?? 'Unknown',
       studios: (json['studios'] as List<dynamic>?)
-          ?.map((studio) => studio['name'] as String)
-          .toList() ?? [],
+              ?.map((studio) => studio['name'] as String)
+              .toList() ??
+          [],
       producers: (json['producers'] as List<dynamic>?)
-          ?.map((producer) => producer['name'] as String)
-          .toList() ?? [],
+              ?.map((producer) => producer['name'] as String)
+              .toList() ??
+          [],
       aired: json['aired']?['string'],
       scoredBy: json['scored_by'],
     );
