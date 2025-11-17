@@ -31,7 +31,7 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() => _isLoading = true);
 
     _prefs = await SharedPreferences.getInstance();
-    
+
     final String? username = _prefs.getString('username');
     final String? photoPath = _prefs.getString('profile_photo_path');
 
@@ -52,19 +52,20 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Text('Pilih Sumber Gambar'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               ListTile(
-                leading: const Icon(Icons.camera_alt_rounded),
+                leading: const Icon(Icons.camera_alt_rounded, color: OtsuColor.primary),
                 title: const Text('Kamera'),
                 onTap: () {
                   Navigator.of(context).pop(ImageSource.camera);
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo_library_rounded),
+                leading: const Icon(Icons.photo_library_rounded, color: OtsuColor.primary),
                 title: const Text('Galeri'),
                 onTap: () {
                   Navigator.of(context).pop(ImageSource.gallery);
@@ -96,19 +97,19 @@ class _ProfilePageState extends State<ProfilePage> {
           _photoPath = image.path;
         });
         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('Profile photo updated!'),
             backgroundColor: Colors.green,
           ));
         }
       }
     } catch (e) {
-       if (mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Failed to pick image: $e'),
           backgroundColor: Colors.red,
         ));
-       }
+      }
     }
   }
 
@@ -135,15 +136,16 @@ class _ProfilePageState extends State<ProfilePage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Center(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    const SizedBox(height: 20),
                     Stack(
                       children: [
                         CircleAvatar(
-                          radius: 70,
+                          radius: 80,
                           backgroundColor: OtsuColor.surface,
                           backgroundImage: _photoPath != null
                               ? FileImage(File(_photoPath!))
@@ -151,47 +153,98 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: _photoPath == null
                               ? const Icon(
                                   Icons.person_rounded,
-                                  size: 70,
+                                  size: 80,
                                   color: OtsuColor.grey,
                                 )
                               : null,
                         ),
                         Positioned(
                           bottom: 0,
-                          right: 0,
+                          right: 4,
                           child: Container(
-                             decoration: BoxDecoration(
+                            decoration: BoxDecoration(
                               color: OtsuColor.primary,
-                              borderRadius: BorderRadius.circular(30)
+                              shape: BoxShape.circle,
+                              border: Border.all(color: OtsuColor.background, width: 3)
                             ),
                             child: IconButton(
-                              icon: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 24,),
+                              icon: const Icon(
+                                Icons.camera_alt_rounded,
+                                color: Colors.white,
+                                size: 22,
+                              ),
                               onPressed: _showImageSourceDialog,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
+                    Text(
+                      _name ?? 'N/A',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: OtsuColor.primary,
+                            fontSize: 26
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '@${_username ?? 'N/A'}',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: OtsuColor.grey,
+                            fontSize: 18
+                          ),
+                    ),
+                    const SizedBox(height: 32),
 
-                    _buildProfileInfo("Name", _name ?? 'N/A'),
-                    const SizedBox(height: 16),
-                    _buildProfileInfo("NIM", _nim ?? 'N/A'),
-                    const SizedBox(height: 16),
-                    _buildProfileInfo("Username", _username ?? 'N/A'),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: OtsuColor.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: OtsuColor.grey.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          _buildInfoTile(
+                            Icons.badge_outlined,
+                            "NIM",
+                            _nim ?? 'N/A',
+                          ),
+                          Divider(color: OtsuColor.background.withOpacity(0.8), height: 1, indent: 20, endIndent: 20),
+                          _buildInfoTile(
+                            Icons.person_outline_rounded,
+                            "Full Name",
+                            _name ?? 'N/A',
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 40),
                     
-                    const SizedBox(height: 48),
-
                     ElevatedButton.icon(
                       onPressed: () => _logout(context),
                       icon: const Icon(Icons.logout_rounded),
                       label: const Text('Logout'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 50)
+                          backgroundColor: Colors.redAccent.withOpacity(0.9),
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(double.infinity, 54),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)
+                          )
                       ),
                     ),
+                    const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -199,36 +252,19 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildProfileInfo(String label, String value) {
-    return Card(
-      elevation: 2,
-      shadowColor: OtsuColor.grey.withOpacity(0.1),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
+  Widget _buildInfoTile(IconData icon, String title, String subtitle) {
+    return ListTile(
+      leading: Icon(icon, color: OtsuColor.primary, size: 28),
+      title: Text(
+        title,
+        style: const TextStyle(color: OtsuColor.grey, fontSize: 14),
       ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        width: double.infinity,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                color: OtsuColor.grey,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: const TextStyle(
-                color: OtsuColor.primary,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
+      subtitle: Text(
+        subtitle,
+        style: const TextStyle(
+          color: OtsuColor.primary,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
