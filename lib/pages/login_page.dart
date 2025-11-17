@@ -34,7 +34,7 @@ class _LoginPageState extends State<LoginPage> {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Username atau password salah'),
+            content: Text('Incorrect username or password'),
             backgroundColor: Colors.red,
           ),
         );
@@ -62,13 +62,13 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Selamat Datang!',
+                    'Welcome!',
                     textAlign: TextAlign.center,
                     style: textTheme.displaySmall,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Login ke akun Otsu-mu',
+                    'Login to your Otsu account',
                     textAlign: TextAlign.center,
                     style: textTheme.titleMedium,
                   ),
@@ -88,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Username tidak boleh kosong';
+                                  return 'Username cannot be empty';
                                 }
                                 return null;
                               },
@@ -103,7 +103,7 @@ class _LoginPageState extends State<LoginPage> {
                               obscureText: true,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Password tidak boleh kosong';
+                                  return 'Password cannot be empty';
                                 }
                                 return null;
                               },
@@ -123,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Belum punya akun?',
+                        'Don\'t have an account?',
                         style: textTheme.bodyMedium,
                       ),
                       TextButton(

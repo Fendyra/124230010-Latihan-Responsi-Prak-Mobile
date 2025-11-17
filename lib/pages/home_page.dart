@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:latres_prak_mobile/models/anime_model.dart';
+import 'package:latres_prak_mobile/pages/detail_page.dart';
 import 'package:latres_prak_mobile/pages/login_page.dart';
 import 'package:latres_prak_mobile/services/api_service.dart';
 import 'package:latres_prak_mobile/theme.dart';
@@ -32,6 +33,15 @@ class _HomePageState extends State<HomePage> {
       context,
       MaterialPageRoute(builder: (context) => const LoginPage()),
       (Route<dynamic> route) => false,
+    );
+  }
+
+  void _navigateToDetail(Anime anime) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailPage(anime: anime),
+      ),
     );
   }
 
@@ -157,29 +167,32 @@ class _HomePageState extends State<HomePage> {
         itemCount: animeList.length,
         itemBuilder: (context, index) {
           final anime = animeList[index];
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 8.0),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24.0),
-              image: DecorationImage(
-                image: NetworkImage(anime.imageUrl),
-                fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(0.4),
-                  BlendMode.darken,
+          return InkWell(
+            onTap: () => _navigateToDetail(anime),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 8.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24.0),
+                image: DecorationImage(
+                  image: NetworkImage(anime.imageUrl),
+                  fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(
+                    Colors.black.withOpacity(0.4),
+                    BlendMode.darken,
+                  ),
                 ),
               ),
-            ),
-            child: Align(
-              alignment: Alignment.bottomLeft,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  anime.title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+              child: Align(
+                alignment: Alignment.bottomLeft,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    anime.title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -204,65 +217,68 @@ class _HomePageState extends State<HomePage> {
       ),
       itemBuilder: (context, index) {
         final anime = animeList[index];
-        return Container(
-          decoration: BoxDecoration(
-            color: OtsuColor.surface,
-            borderRadius: BorderRadius.circular(16.0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.blueGrey.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16.0),
-                    topRight: Radius.circular(16.0),
-                  ),
-                  child: Image.network(
-                    anime.imageUrl,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
+        return InkWell(
+          onTap: () => _navigateToDetail(anime),
+          child: Container(
+            decoration: BoxDecoration(
+              color: OtsuColor.surface,
+              borderRadius: BorderRadius.circular(16.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blueGrey.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Text(
-                  anime.title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: OtsuColor.primary,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                child: Row(
-                  children: [
-                    const Icon(Icons.star_rounded, color: OtsuColor.accent, size: 20),
-                    const SizedBox(width: 4),
-                    Text(
-                      anime.score.toString(),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: OtsuColor.primary,
-                        fontSize: 14,
-                      ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16.0),
+                      topRight: Radius.circular(16.0),
                     ),
-                  ],
+                    child: Image.network(
+                      anime.imageUrl,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Text(
+                    anime.title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: OtsuColor.primary,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.star_rounded, color: OtsuColor.accent, size: 20),
+                      const SizedBox(width: 4),
+                      Text(
+                        anime.score.toString(),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: OtsuColor.primary,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },

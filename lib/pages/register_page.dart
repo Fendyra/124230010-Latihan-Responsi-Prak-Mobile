@@ -23,7 +23,7 @@ class _RegisterPageState extends State<RegisterPage> {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Username sudah digunakan'),
+            content: Text('Username is already taken'),
             backgroundColor: Colors.red,
           ),
         );
@@ -38,7 +38,7 @@ class _RegisterPageState extends State<RegisterPage> {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Registrasi berhasil! Silakan login.'),
+          content: Text('Registration successful! Please login.'),
           backgroundColor: Colors.green,
         ),
       );
@@ -77,13 +77,13 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Buat Akun Otsu',
+                    'Create Your Otsu Account',
                     textAlign: TextAlign.center,
                     style: textTheme.displaySmall,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Mulai koleksi anime favoritmu',
+                    'Start collecting your favorite anime',
                     textAlign: TextAlign.center,
                     style: textTheme.titleMedium,
                   ),
@@ -98,12 +98,12 @@ class _RegisterPageState extends State<RegisterPage> {
                             TextFormField(
                               controller: _nameController,
                               decoration: const InputDecoration(
-                                labelText: 'Nama Lengkap',
+                                labelText: 'Full Name',
                                 prefixIcon: Icon(Icons.person_outline_rounded),
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Nama tidak boleh kosong';
+                                  return 'Name cannot be empty';
                                 }
                                 return null;
                               },
@@ -117,7 +117,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Username tidak boleh kosong';
+                                  return 'Username cannot be empty';
                                 }
                                 return null;
                               },
@@ -132,10 +132,10 @@ class _RegisterPageState extends State<RegisterPage> {
                               obscureText: true,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Password tidak boleh kosong';
+                                  return 'Password cannot be empty';
                                 }
                                 if (value.length < 6) {
-                                  return 'Password minimal 6 karakter';
+                                  return 'Password must be at least 6 characters';
                                 }
                                 return null;
                               },
@@ -155,7 +155,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Sudah punya akun?',
+                        'Already have an account?',
                         style: textTheme.bodyMedium,
                       ),
                       TextButton(
