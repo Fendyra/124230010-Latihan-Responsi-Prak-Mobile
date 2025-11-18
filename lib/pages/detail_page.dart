@@ -21,6 +21,8 @@ class _DetailPageState extends State<DetailPage> {
   bool _isFavorite = false;
   late SharedPreferences _prefs;
 
+  bool _showTrailer = false;
+
   @override
   void initState() {
     super.initState();
@@ -97,8 +99,8 @@ class _DetailPageState extends State<DetailPage> {
               _buildHeaderSection(),
               _buildWatchStatus(),
               _buildGenreTags(),
+              _buildTrailerSection(),
               _buildSynopsisSection(),
-              _buildLinkButton(),
               _buildInfoSection(),
             ]),
           ),
@@ -123,25 +125,15 @@ class _DetailPageState extends State<DetailPage> {
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
-        background: _controller != null
-            ? YoutubePlayer(
-                controller: _controller!,
-                showVideoProgressIndicator: true,
-                progressIndicatorColor: OtsuColor.accent,
-                progressColors: const ProgressBarColors(
-                  playedColor: OtsuColor.accent,
-                  handleColor: OtsuColor.accent,
-                ),
-              )
-            : Image.network(
-                widget.anime.imageUrl,
-                fit: BoxFit.cover,
-                color: Colors.black.withAlpha(77),
-                colorBlendMode: BlendMode.darken,
-                errorBuilder: (context, error, stackTrace) => const Center(
-                  child: Icon(Icons.error, color: OtsuColor.grey),
-                ),
-              ),
+        background: Image.network(
+          widget.anime.imageUrl,
+          fit: BoxFit.cover,
+          color: Colors.black.withAlpha(77),
+          colorBlendMode: BlendMode.darken,
+          errorBuilder: (context, error, stackTrace) => const Center(
+            child: Icon(Icons.error, color: OtsuColor.grey),
+          ),
+        ),
       ),
     );
   }
@@ -185,7 +177,8 @@ class _DetailPageState extends State<DetailPage> {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Icon(Icons.star_rounded, color: OtsuColor.accent, size: 28),
+                    const Icon(Icons.star_rounded,
+                        color: OtsuColor.accent, size: 28),
                     const SizedBox(width: 4),
                     Text(
                       widget.anime.score.toStringAsFixed(2),
@@ -197,7 +190,8 @@ class _DetailPageState extends State<DetailPage> {
                     ),
                     Text(
                       " (${widget.anime.scoredBy ?? 'N/A'} votes)",
-                      style: const TextStyle(fontSize: 14, color: OtsuColor.grey),
+                      style:
+                          const TextStyle(fontSize: 14, color: OtsuColor.grey),
                     ),
                   ],
                 ),
@@ -206,7 +200,8 @@ class _DetailPageState extends State<DetailPage> {
                   children: [
                     _buildStatChip("Rank", "#${widget.anime.rank ?? 'N/A'}"),
                     const SizedBox(width: 8),
-                    _buildStatChip("Popularity", "#${widget.anime.popularity ?? 'N/A'}"),
+                    _buildStatChip(
+                        "Popularity", "#${widget.anime.popularity ?? 'N/A'}"),
                   ],
                 ),
               ],
@@ -226,10 +221,13 @@ class _DetailPageState extends State<DetailPage> {
       ),
       child: Column(
         children: [
-          Text(label, style: const TextStyle(fontSize: 11, color: OtsuColor.primary)),
+          Text(label,
+              style: const TextStyle(fontSize: 11, color: OtsuColor.primary)),
           Text(value,
               style: const TextStyle(
-                  fontSize: 13, fontWeight: FontWeight.bold, color: OtsuColor.primary)),
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: OtsuColor.primary)),
         ],
       ),
     );
@@ -249,7 +247,9 @@ class _DetailPageState extends State<DetailPage> {
             selected: _selectedStatusIndex == index + 1,
             selectedColor: OtsuColor.primary.withAlpha(204),
             labelStyle: TextStyle(
-              color: _selectedStatusIndex == index + 1 ? Colors.white : OtsuColor.primary,
+              color: _selectedStatusIndex == index + 1
+                  ? Colors.white
+                  : OtsuColor.primary,
               fontWeight: FontWeight.w600,
             ),
             backgroundColor: OtsuColor.surface,
@@ -288,6 +288,86 @@ class _DetailPageState extends State<DetailPage> {
     );
   }
 
+  Widget _buildTrailerSection() {
+    if (_controller == null) {
+      return const SizedBox.shrink();
+    }
+
+    if (!_showTrailer) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(20.0, 8.0, 20.0, 0.0),
+        child: ElevatedButton.icon(
+          icon: const Icon(Icons.play_arrow_rounded),
+          label: const Text("Putar Trailer"),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: OtsuColor.primary,
+            foregroundColor: Colors.white,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+            padding: const EdgeInsets.symmetric(vertical: 14.0),
+            minimumSize: const Size(double.infinity, 50),
+          ),
+          onPressed: () {
+            setState(() {
+              _showTrailer = true;
+            });
+          },
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20.0, 8.0, 20.0, 0.0),
+      child: Column(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12.0),
+            child: YoutubePlayer(
+              controller: _controller!,
+              showVideoProgressIndicator: true,
+              progressIndicatorColor: OtsuColor.accent,
+              progressColors: const ProgressBarColors(
+                playedColor: OtsuColor.accent,
+                handleColor: OtsuColor.accent,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8.0),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton.icon(
+                icon: const Icon(Icons.close_rounded),
+                label: const Text("Tutup"),
+                style: TextButton.styleFrom(foregroundColor: OtsuColor.grey),
+                onPressed: () {
+                  setState(() {
+                    _showTrailer = false;
+                    _controller?.pause();
+                  });
+                },
+              ),
+              TextButton.icon(
+                icon: const Icon(Icons.open_in_new_rounded),
+                label: const Text("Buka di YouTube"),
+                style: TextButton.styleFrom(foregroundColor: OtsuColor.primary),
+                onPressed: () => _launchURL(widget.anime.trailerId),
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh_rounded),
+                color: OtsuColor.grey,
+                tooltip: "Reload",
+                onPressed: () {
+                  _controller?.load(widget.anime.trailerId!);
+                },
+              )
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
   Widget _buildSynopsisSection() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -320,7 +400,8 @@ class _DetailPageState extends State<DetailPage> {
               widget.anime.synopsis.isEmpty
                   ? "No synopsis available."
                   : widget.anime.synopsis,
-              style: const TextStyle(fontSize: 14, color: OtsuColor.text, height: 1.6),
+              style: const TextStyle(
+                  fontSize: 14, color: OtsuColor.text, height: 1.6),
             ),
           ),
         ],
@@ -328,86 +409,101 @@ class _DetailPageState extends State<DetailPage> {
     );
   }
 
-  Widget _buildLinkButton() {
-    if (widget.anime.trailerId == null || widget.anime.trailerId!.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-      child: OutlinedButton.icon(
-        icon: const Icon(Icons.play_arrow_rounded),
-        label: const Text("Watch Full Trailer on YouTube"),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: OtsuColor.primary,
-          side: const BorderSide(color: OtsuColor.primary),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-          padding: const EdgeInsets.symmetric(vertical: 14.0),
-        ),
-        onPressed: () => _launchURL(widget.anime.trailerId),
-      ),
-    );
-  }
-
   Widget _buildInfoSection() {
+    const double verticalSpacing = 16.0;
+    const double horizontalSpacing = 16.0;
+
     return Padding(
       padding: const EdgeInsets.all(20.0),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text(
-          "Information",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: OtsuColor.primary,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start, 
+        children: [
+          const Text(
+            "Information",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: OtsuColor.primary,
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
-        GridView.count(
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          crossAxisCount: 2,
-          childAspectRatio: 3.5,
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
-          children: [
-            _buildInfoTile("Type", widget.anime.type),
-            _buildInfoTile("Episodes", widget.anime.episodes?.toString() ?? 'N/A'),
-            _buildInfoTile("Status", widget.anime.status),
-            _buildInfoTile("Aired", widget.anime.aired ?? 'N/A'),
-            _buildInfoTile("Duration", widget.anime.duration),
-            _buildInfoTile("Rating", widget.anime.rating),
-            _buildInfoTile("Source", widget.anime.source),
-            _buildInfoTile(
-                "Season",
-                "${widget.anime.season?.capitalize() ?? 'N/A'} "
-                "${widget.anime.year ?? ''}"),
-            _buildInfoTile("Members", widget.anime.members?.toString() ?? 'N/A'),
-            _buildInfoTile("Favorites", widget.anime.favorites?.toString() ?? 'N/A'),
-          ],
-        ),
-        const SizedBox(height: 12),
-        _buildInfoTile("Studios",
-            widget.anime.studios.join(', ').isEmpty ? 'N/A' : widget.anime.studios.join(', ')),
-        const SizedBox(height: 8),
-        _buildInfoTile("Producers",
-            widget.anime.producers.join(', ').isEmpty ? 'N/A' : widget.anime.producers.join(', ')),
-      ]),
+          const SizedBox(height: verticalSpacing),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _buildInfoTile("Type", widget.anime.type)),
+              const SizedBox(width: horizontalSpacing),
+              Expanded(child: _buildInfoTile("Episodes", widget.anime.episodes?.toString() ?? 'N/A')),
+            ],
+          ),
+          const SizedBox(height: verticalSpacing),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _buildInfoTile("Status", widget.anime.status)),
+              const SizedBox(width: horizontalSpacing),
+              Expanded(child: _buildInfoTile("Aired", widget.anime.aired ?? 'N/A')),
+            ],
+          ),
+          const SizedBox(height: verticalSpacing),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _buildInfoTile("Duration", widget.anime.duration)),
+              const SizedBox(width: horizontalSpacing),
+              Expanded(child: _buildInfoTile("Rating", widget.anime.rating)),
+            ],
+          ),
+          const SizedBox(height: verticalSpacing),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _buildInfoTile("Source", widget.anime.source)),
+              const SizedBox(width: horizontalSpacing),
+              Expanded(
+                child: _buildInfoTile(
+                  "Season",
+                  "${widget.anime.season?.capitalize() ?? 'N/A'} ${widget.anime.year ?? ''}"
+                )
+              ),
+            ],
+          ),
+          const SizedBox(height: verticalSpacing),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _buildInfoTile("Members", widget.anime.members?.toString() ?? 'N/A')),
+              const SizedBox(width: horizontalSpacing),
+              Expanded(child: _buildInfoTile("Favorites", widget.anime.favorites?.toString() ?? 'N/A')),
+            ],
+          ),
+          const SizedBox(height: verticalSpacing),
+          _buildInfoTile("Studios",
+              widget.anime.studios.join(', ').isEmpty ? 'N/A' : widget.anime.studios.join(', ')),
+          const SizedBox(height: verticalSpacing),
+          _buildInfoTile("Producers",
+              widget.anime.producers.join(', ').isEmpty ? 'N/A' : widget.anime.producers.join(', ')),
+        ]
+      ),
     );
   }
 
   Widget _buildInfoTile(String title, String value) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(title, style: const TextStyle(fontSize: 13, color: OtsuColor.grey)),
-      Text(
-        value,
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          color: OtsuColor.primary,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start, 
+      children: [
+        Text(
+          title, 
+          style: const TextStyle(fontSize: 13, color: OtsuColor.grey)
         ),
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-      ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: OtsuColor.primary,
+          ),
+        ),
     ]);
   }
 }
