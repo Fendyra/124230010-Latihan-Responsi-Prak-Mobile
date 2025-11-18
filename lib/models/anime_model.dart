@@ -84,4 +84,10 @@ class Anime {
       scoredBy: json['scored_by'],
     );
   }
+
+  get trailerEmbedUrl => null;
+
+  get airedString => null;
+
+  get ratingLabel => null;
 }
