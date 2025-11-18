@@ -16,8 +16,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final ApiService apiService = ApiService();
   final TextEditingController _searchController = TextEditingController();
-  List<Anime> _animeList = [];
+  
+  List<Anime> _animeList = []; // Berisi semua anime dari API
   List<Anime> _spotlightAnime = [];
+  List<Anime> _favoriteAnimeList = []; // Berisi anime yg sudah difilter
+  List<String> _favoriteIds = []; // Berisi ID favorit dari SharedPreferences
+
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -30,7 +34,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _pageController = PageController(viewportFraction: 0.85);
-    _fetchTopAnime();
+    _loadFavoritesAndFetchAnime(); // Mengganti _fetchTopAnime()
   }
 
   @override
@@ -38,6 +42,32 @@ class _HomePageState extends State<HomePage> {
     _pageController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  // Langkah 1: Panggil ini di initState
+  Future<void> _loadFavoritesAndFetchAnime() async {
+    await _loadFavoriteIds(); // Muat ID favorit dulu
+    await _fetchTopAnime(); // Baru fetch anime (yang akan memfilter)
+  }
+
+  // Langkah 2: Fungsi untuk memuat ID dari SharedPreferences ke state
+  Future<void> _loadFavoriteIds() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final List<String> favoriteIds = prefs.getStringList('favorite_ids') ?? [];
+    setState(() {
+      _favoriteIds = favoriteIds;
+    });
+  }
+
+  // Langkah 3: Fungsi untuk refresh favorit (setelah kembali dari DetailPage)
+  Future<void> _refreshFavorites() async {
+    await _loadFavoriteIds(); // Ambil ID terbaru
+    setState(() {
+      // Filter ulang _animeList yang sudah ada di memori
+      _favoriteAnimeList = _animeList
+          .where((anime) => _favoriteIds.contains(anime.malId.toString()))
+          .toList();
+    });
   }
 
   Future<void> _fetchTopAnime() async {
@@ -52,7 +82,12 @@ class _HomePageState extends State<HomePage> {
         type: _selectedType == 'All' ? null : _selectedType?.toLowerCase(),
       );
       setState(() {
-        _animeList = animeList;
+        _animeList = animeList; // Simpan daftar lengkap
+
+        // Filter daftar favorit dari daftar lengkap
+        _favoriteAnimeList = _animeList
+            .where((anime) => _favoriteIds.contains(anime.malId.toString()))
+            .toList();
 
         if (_selectedType == 'All') {
           _spotlightAnime = animeList.take(5).toList();
@@ -87,6 +122,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         _animeList = animeList;
         _spotlightAnime = [];
+        _favoriteAnimeList = []; // Kosongkan favorit saat mencari
         _isLoading = false;
       });
     } catch (e) {
@@ -131,6 +167,10 @@ class _HomePageState extends State<HomePage> {
             _buildHeader(context),
             _buildSearchBar(),
             if (!_isSearching) _buildCategoryFilters(),
+            
+            // Tampilkan Watch List (Favorit) di sini
+            _buildWatchListSection(),
+
             if (_spotlightAnime.isNotEmpty && !_isSearching) ...[
               _buildSectionTitle("Anime Spotlight"),
               _buildAnimeCarousel(_spotlightAnime),
@@ -174,13 +214,67 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // WIDGET BARU: Bagian Watch List (Favorit)
+  Widget _buildWatchListSection() {
+    // Jangan tampilkan jika sedang loading, mencari, atau tidak punya favorit
+    if (_isLoading || _favoriteAnimeList.isEmpty || _isSearching) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle("Favorite List"), // Memakai ulang widget judul
+        SizedBox(
+          height: 180, // Tinggi untuk poster
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _favoriteAnimeList.length,
+            // Beri padding horizontal agar sejajar dengan grid
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            itemBuilder: (context, index) {
+              final anime = _favoriteAnimeList[index];
+              return _buildFavoriteCard(anime);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  // WIDGET BARU: Card untuk item Watch List
+  Widget _buildFavoriteCard(Anime anime) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => DetailPage(anime: anime)),
+        ).then((_) => _refreshFavorites()); // Refresh favorit saat kembali
+      },
+      child: Container(
+        width: 120, // Lebar poster
+        margin: const EdgeInsets.only(right: 12.0),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.all(Radius.circular(12.0)),
+          child: Image.network(
+            anime.imageUrl,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => const Center(
+              child: Icon(Icons.broken_image, color: OtsuColor.grey),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(24, 8, 24, 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
@@ -234,12 +328,12 @@ class _HomePageState extends State<HomePage> {
                 MaterialPageRoute(
                   builder: (context) => DetailPage(anime: anime),
                 ),
-              );
+              ).then((_) => _refreshFavorites()); // Refresh favorit saat kembali
             },
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 8.0),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24.0),
+                borderRadius: const BorderRadius.all(Radius.circular(24.0)),
                 image: DecorationImage(
                   image: NetworkImage(anime.imageUrl),
                   fit: BoxFit.cover,
@@ -289,13 +383,13 @@ class _HomePageState extends State<HomePage> {
               : null,
           fillColor: OtsuColor.surface,
           filled: true,
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16.0),
+          enabledBorder: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(16.0)),
             borderSide: BorderSide.none,
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16.0),
-            borderSide: const BorderSide(color: OtsuColor.primary, width: 2.0),
+          focusedBorder: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(16.0)),
+            borderSide: BorderSide(color: OtsuColor.primary, width: 2.0),
           ),
         ),
         onSubmitted: (value) {
@@ -328,7 +422,7 @@ class _HomePageState extends State<HomePage> {
             selectedColor: OtsuColor.primary,
             backgroundColor: OtsuColor.surface,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: const BorderRadius.all(Radius.circular(20)),
               side: BorderSide(
                 color:
                     isSelected ? OtsuColor.primary : OtsuColor.grey.withOpacity(0.5),
@@ -369,12 +463,12 @@ class _HomePageState extends State<HomePage> {
               MaterialPageRoute(
                 builder: (context) => DetailPage(anime: anime),
               ),
-            );
+            ).then((_) => _refreshFavorites()); // Refresh favorit saat kembali
           },
           child: Container(
             decoration: BoxDecoration(
               color: OtsuColor.surface,
-              borderRadius: BorderRadius.circular(16.0),
+              borderRadius: const BorderRadius.all(Radius.circular(16.0)),
               boxShadow: [
                 BoxShadow(
                   color: Colors.blueGrey.withOpacity(0.1),
